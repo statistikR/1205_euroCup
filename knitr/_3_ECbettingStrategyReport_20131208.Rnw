@@ -1,0 +1,385 @@
+% This program creates a pdf report that summarizes the EC simulation results and indicates what national teams would be
+% a good buy (at which price) during the auction. The reports also provides which auction teams bought which national
+% teams and it provides the likelihood of each auction team of winnning the auction.
+
+
+
+% Preview source code
+
+\documentclass{article}
+\usepackage{graphicx}
+
+
+
+
+\linespread{1.2}
+
+\begin{document}
+
+\title{\underline{Report:}\\* Supporting Material to Prepare for The Bovine Euro Cup Auction\texttrademark{ } and Analysis of the Predicted Outcome of the Auction Game}
+\author{Micha Segeritz}
+\maketitle
+
+\begin{abstract}
+This paper reports the outcomes of a Monte-Carlo experiment of the Euro Cup based on current odds publish on the major betting websites. Based on these odds, I pogrammed an algorithm in R that simulates the Euro Cup 10,000 times and records the results. The outcomes of each game in each iteration is translated into points for Xtian's auction. Based on the average number of points, a subsequent algorithm calculates the value of each team. This supports the development of several appropriate auction strategies focusing on optimal/minimum buying price.
+
+The second part of the paper predicts how well each auction team will do during the Euro Cup, given the National Teams they bought during the auction. Among other results, the probability of accumulating the most number of points and therefore winning the Bovine Euro Cup Auction\texttrademark{ } is displayed for each team.
+
+At a later stage, this paper may also incorporate the actual results of each auction team at the end of the Euro Cup. As it turns out the team for which the highest likelihood of winning was predicted ended up winning the Auction game.
+\end{abstract}
+
+
+
+
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%This section starts processing in R without showing any output
+<<test,fig.keep='none',echo=FALSE,eval=TRUE,message=FALSE>>=
+
+setwd("~/GoogleDrive/WORKSPACE/travaille/dataScience/1205_euroCup")
+library(Hmisc)
+require(xtable)
+library(vioplot)
+library(vioplot)
+library(lattice)
+library(ggplot2)
+library(lattice)
+
+
+
+
+
+
+# create some vectors needed for labeling and looping below
+countries    <- c("Pol", "Gre", "Rus", "Cze", "Net", "Den", "Ger","Por", "Esp", "Ita", "Ire", "Cro","Ukr", "Swe", "Fra", "Eng")
+
+load("./data/resultTable.rda")
+load("./data/resultsDataFrame.rda")
+
+load("./data/graphingData.rda")
+load("./data/buyingFrame.rda")
+
+load("./data/teamResults.rda")
+
+load("./data/ggplotinput.rda")
+
+
+
+
+#attach(result.table)
+
+
+
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#now we return to Latex code
+@
+
+
+\section{Total Number of Points earned}
+
+The simulations of the algorithm show that the total number of points earned during the games is centered around 320 points (see graph below). Given that \$1,000 are in the auction, it means that a point is worth \$3.13. It also follows that if each of the 10 betting teams would show an optimal strategy, each team would earn exactely 32 points on average.  However, to win the EC game, the goal is to buy points below the \$3.13 treshold, or, in other words, to buy more than 32 points for the \$100 available.
+
+Analysis of the World Cup betting game suggest, that the winner has to overperform by about 60 percent. This means, that the winner has to find a strategy to accumulate 51.2 points.
+
+
+
+
+
+
+\begin{center}
+
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%This section starts processing in R only showing the graph output
+<<plot1,echo=FALSE,eval=TRUE,dev='pdf'>>=
+
+
+#plot distribution of total points
+
+
+par(pin=c(6, 3))
+density.totalPoints<-density(results.data.frame$total.points)
+plot(density.totalPoints,main="Average Number of Points Accumulated During Euro Cup")
+text(310,0.005, "Mean=319.8 \nMedian=320 \nMiddle 50%: 312-328",     cex = .7, lwd=6, col=c("black","lightblue4"))
+
+#summary(total.points)
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#now we return to Latex code
+@
+
+\end{center}
+
+\section{Summary Statistics by Teams}  %section 2
+\subsection{Rank After the Group Stage} %section 2.1
+
+The following section provides first insights into the results of the simulation. It focuses on the predicted ranks with which each team will likely finish the group stage (see graph below). Most of these results are not very surprising. As expected, Spain almost always makes it out of the group and in almost all cases it wins the group. However, there are also some more interesting and unexpected results. Countries like Russia, Czech Republic, Poland and even Croatia could be very interesting and potentially receive less attention from other bidders during the auction.
+
+\newpage
+
+
+\begin{center}
+
+\bf{Distribution of Ranks During Group Stage}
+
+
+
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%This section starts processing in R only showing the graph output
+<<echo=FALSE,eval=TRUE>>=
+
+#load("./data/resultsDataFrame.rda")
+
+graph.ranks <- results.data.frame[seq(from=2,to=80,by=5)]
+
+
+par(mfrow=c(4,4))#,pin=c(0.8, 1.1))
+for (i in 1:16){
+  title <- countries[[i]]
+hist(graph.ranks[[i]],prob=TRUE,breaks=0:4,main=title,
+     xlab='Rank',col="lightblue4")
+}
+
+
+
+
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#now we return to Latex code
+@
+\end{center}
+
+\subsection{Points During the Complete Euro Cup} %2.2
+
+
+
+More intersting than actual ranks in the group stages are the average number of points each team is accumulating during the tournament. The average number of points for each team is shown in the box-and-whisker plot below. The box spans from the 25th to the 75th percentile and the black dot indicates the median number of points each team accumulated across the 10,000 iterations. The whiskers indicates the lowest and highest point that still falls withing the inter quartile range (IQR; this statistic is less important for our purposes, though and therefore it won't be discussed). 
+
+Based on the graph, it seems that there is a large difference between the overall strength of a team and the outcome measured in points. This is because a weaker team earns more points for each win than a stronger team. For example, a win of a fourth tier team (e.g., Greece) is almost as valuable as if a first tier team wins all their group games (looking at the odds, even Spain is not that likely to win all their group games!)
+
+
+
+The most interesting result however may be that all the countries are more similar to each than intuition suggest! As mentioned earlier, this is because a weak country can partially offset the stellar performance of a strong country with just one win. 
+
+For example, the number of points Germany accumulates on average during the Euro Cup is higher than the number of points the Czech Republic accumulates. However, there is still a lot of overlap between the two countries. 
+
+The graph clearly suggests that there is only Spain that should be clearly more worth than most other teams. Also Germany and the Netherland show above average performance, but it seems that their average performance does not justify a price about twice as high as the price for a country such as Russia. However, if a betting team pays for countries like Germany and the Netherlands more than they are worth, there is not enough money in the pool to sell the other countries for what they are actually worth. Thus, whenever a country is sold over value, another country has to be sold under value.
+
+\vspace{10mm}
+
+
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%This section starts processing in R only showing the graph output
+<<echo=FALSE,eval=TRUE>>=
+
+
+
+countries    <- c("Pol", "Gre", "Rus", "Cze", "Net", "Den", "Ger","Por", "Esp", "Ita", "Ire", "Cro","Ukr", "Swe", "Fra", "Eng")
+revCountries <- rev(countries)
+
+graphingData$nameVector<-factor(graphingData$nameVector,
+                   levels=c(16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1),
+                   labels=countries)
+
+
+
+bwplot(graphingData$nameVector~graphingData$pointsVector,
+            ylab="Countries", xlab="Points During Euro Cup", 
+            main="Average Points Over 10,000 Simulations",col=c("black"))
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#now we return to Latex code
+@
+
+\subsection{Ideal and True Value of Each Team and Additional Stats} %2.3
+
+Finally, the table below indicates the actual optimum price (true value) for each country. The price is determined by multiplying \$3.13, the value of each point, with the number of points each team will likely accumulate. Not surprisingly, Spain is the most valuable team with about \$47. However, if you spend \$47 for Spain, it just means that you are on track to do "average" which means you are on track to accumulate about 32 points in total (which most likely won't be enough to win the Euro Cup auction game). 
+
+To actually win the Euro Cup auction game, the goal would be to buy the points cheaper and to outperform the other teams participating in the auction. Based on the World Cup, in order to have a good chance of winning the betting game, the teams should be bought under value. Calculations suggest that an ideal buying price for each point would be \$1.95 which translates to the price in the first column. Based on a first inspections of the ideal prices, I'm wondering if teams like Pol, Gre, Rus, Cze, Cro, Ukr and Swe might be selling close to their ideal value. Whereas all the tier 1 teams most likely will be selling above their true value (column 2).
+
+\vspace{10mm}
+
+\begin{center}
+
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%This section starts processing in R only showing the graph output
+<<graph3,echo=FALSE,eval=TRUE>>=
+
+library(vioplot)
+vioplot(results.data.frame$total.points,horizontal=TRUE,col="lightblue", at=-4, rectCol="gray")
+
+#attach(result.table)
+
+@
+
+<<table3,fig.keep='none',echo=FALSE,eval=TRUE,results='asis'>>=
+finalResultTable <- result.table[,-10]
+names(finalResultTable) <- c("Ideal Value", "True Value", "Median", "10%", "25%", "75%", "90%", "Group 1st/2nd", "EC Winner")
+
+
+
+print(xtable(finalResultTable, dec = 1, caption = "Descriptive Statistics",
+center = "centering", file = "", floating = FALSE),size="\\scriptsize")
+
+
+
+#graph some key results
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#now we return to Latex code
+@
+
+\end{center}
+\newpage
+
+Other statistics presented in this table are: the median performance of the national teams (column 3). The 10th, 25th, 75th and 90th percentile and lastly, the percent value that a team makes it out of the group (column 8) and wins the Euro Cup (column 9).
+
+Finally, the table below fills in the price range between the ideal value (60\% overperformance) and the true value (0\% overperformance). This table could help to compare prices for team during the auction to each other.
+
+\vspace{10mm}
+
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%This section starts processing in R only showing the graph output
+<<fig.keep='none',echo=FALSE,eval=TRUE,results='asis'>>=
+
+library(vioplot)
+vioplot(results.data.frame$total.points,horizontal=TRUE,col="lightblue", at=-4, rectCol="gray")
+
+
+
+
+buying.frame <- round(buying.frame,digits=2)
+names(buying.frame) <- c("Ideal Value", "50% Sale", "40% Sale", "30% Sale", "20% Sale", "10% Sale", "True Value")
+
+
+
+print(xtable(buying.frame, dec = 1, caption = "True and Ideal Price for each National Team",
+center = "centering", file = "", floating = FALSE),size="\\scriptsize")
+
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+#now we return to Latex code
+@
+\newpage
+\section{Evaluation of the Euro Cup Auction}  %section 3
+
+During the auction each finalist national team for the Euro cup 2012 was auctioned off twice to the 10 participating teams. The following table indicates the two members of each team and then national teams they aquired during the auction.
+
+\vspace{10mm}
+
+\begin{table}[ht]
+\begin{center}
+{\small
+\begin{tabular}{rrr}
+  \hline
+  Team \# & Team Member & National Teams \\ 
+  \hline 
+1 & Doug \& Regina & Gre, Net \\
+2 & Randy \& Alex & Ita, Den, Net \\
+3 & Mike C \& Nitin & Pol, Ukr, Spa \\
+4 & Adam \& Grellan & Cze, Fra, Fra \\
+5 & Milberger \& Nelson & Cro, Pol, Ger \\
+6 & Don \& Jonathan & Ita, Rus, Swe \\
+7 & Will \& Dan & Gre, Ire, Spa \\
+8 & Xtian \& Micha & Rus, Den, Por, Ukr, Eng \\
+9 & Dennis \& Bastian & Cze, Ger, Cro \\
+10 & Kevin \& Devin & Por, Swe, Ire, Eng \\
+   \hline
+\end{tabular}
+}
+\caption{Descriptive Statistics}
+\end{center}
+\end{table}
+
+
+
+\subsection{Probability of Winning the Bovine Euro Cup Auction\texttrademark}
+
+The simulation in the first part of this paper calculated for each national team the number of points it received during each of the 10,000 iterations. This allows us to calculate how many points each auction-team accumulates during each iteration. For example, if Greece gains 8 points and the Netherlands 27 points, Mike and Regina will accumulate 35 points. For each of the 10,000 iterations we calculate for each of the 10 auction teams the number of points earned. Then, for each of the 10,000 iterations, we rank order the 10 teams by points and calculate how often each of the 10 teams comes out on top. The result is displayed in the bar graph below. As a reference, if the auction would have been conducted completely random, each of the 10 teams would have a 10\% chance of winning the Euro Cup Auction game. It appears that team number 8 has the highest probability of winning the auction. In about 30\% of all iterations, team number 8 accumulates the most number of points. The graph also indicates, that even though the chances of winning the Euro Cup auction varies across teams, most teams still have a reasonable chance of winning.
+
+
+\vspace{15mm}
+
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%This section starts processing in R only showing the graph output
+<<echo=FALSE,eval=TRUE>>=
+
+
+percentWinning <- (table(teamResults$winningTeam)/length(teamResults$winningTeam))*100
+
+
+barplot(percentWinning,main="Likelyhood of Winning the EC Auction by Teams", 
+        ylab="Predicted Probability of Winning the EC Auction", ylim=c(0,35),
+        xlab="Teams",
+        col=c("lightblue4"),
+        names.arg=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"),
+        cex.names=0.8)
+
+@
+
+\subsection{In-Depth Analysis of the Euro Cup Outcomes by Auction-Teams}
+
+The following section does not just look at the teams that come out on top, but also on which rank each team finishes on average. For example, team number 4 shows, because all 10 ranks are displayed in similar intensity, a fairly uniform distribution across all 10 ranks. Team number 3, on the other hand, show s darker shades between rank 1-4 and a very light shade for rank 9 and 10. This means, it is much more likely that team number 3 finishes with a top position than finishing on a low rank. 
+
+%--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
+%This section starts processing in R only showing the graph output
+<<echo=FALSE,eval=TRUE>>=
+  
+  
+
+
+# graph cross tab
+
+ggplot() +
+  geom_point(data = ggplotinput,
+             aes(x = Rank, y = Team, colour = Probability),
+             shape=15, size = 10) +
+               scale_colour_gradient(limits=c(0,36), low="aliceblue", high="blue") +
+                ggtitle("Distribution of Ranks for Each Auction Team") +   
+               theme(
+                    panel.background = element_blank(),
+                    #legend.position = "none",
+                    #axis.title.x = element_blank(),
+                    #axis.title.y = element_blank(),
+                    axis.text.x = element_text(colour = "black"), 
+                    axis.text.y = element_text(colour = "black")) + ylab("Teams") + xlab("Rank of Team")
+
+@
+
+\section{Outcome of Auction Game}
+
+[add more ...]
+
+Team 8 won followed by team 9.
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
